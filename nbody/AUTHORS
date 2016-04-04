@@ -7,3 +7,6 @@
     Naoki Yoshida:     naoki@mpa-garching.mpg.de
 
 
+  Author of sidm.c and codes between #ifdef -DSIDM #endif
+
+    Jun Koda           junkoda@physics.utexas.edu

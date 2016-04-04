@@ -1,86 +1,100 @@
-#  There are a number of code options that need to be switched on/off
-#  on compile-time.
+# % make
+all: sidm-gadget
+
+EXEC     = sidm-gadget
+CC       = mpicc
+CFLAGS  := -O2
+LIBS    := -lm
+
+# non-standard library path if necessary
+GSL_DIR ?= #e.g. /Users/jkoda/Research/opt/gcc/gsl
+
 #
-#  From the following list, please select the desired options:
-
-#OPT   +=  -DPERIODIC       # enables periodic boundaries conditions
-#OPT   +=  -DCOOLING        # radiative heating and cooling
-#OPT   +=  -DDIAG           # outputs performance diagnostic for tree walks
-OPT   +=  -DINLINE         # compiler accepts the `inline' statement
-#OPT   +=  -DT3E            # needed on the T3E
-#OPT   +=  -DRECTREECONS    # switches on recursive computation of multipole moments
-OPT   +=  -DBMAX           # enables very conservative node-opening 
-#OPT   +=  -DVELDISP        # selects computation of velocity dispersion/density for dark matter
-
-#OPT   +=  -DMOREPARAMS    # enables additional parameters in parameterfile for star formation sector
-#OPT   +=  -DSFR           # switches on star formation
-#OPT   +=  -DCLOUDS        # switches on multi-phase model for star formation
-#OPT   +=  -DSTELLARAGE    # Switches on computation of mean time of stellar formation redshift/age
-#OPT13   =  -DSTOCHASTICSFR # switches on stochastic star formation events as opposed to continuous treatment in standard scheme
-OPT   +=  -DSIDM
+# Options
+#
+#OPT  +=  -DPERIODIC        # enables periodic boundaries conditions
+#OPT  +=  -DDIAG            # outputs performance diagnostic for tree walks
+#OPT  +=  -DRECTREECONS     # switches on recursive computation of multipole moments
+OPT   +=  -DINLINE          # compiler accepts the `inline' statement
+OPT   +=  -DBMAX            # enables very conservative node-opening 
+OPT   +=  -DSIDM            # enables Self-Interacting Dark Matter
 OPT   +=  -DREFLECTIONBOUNDARY
-OPT   +=  -DSCATTERLOG
-OPT   +=  -DFINDNBRLOG
-OPT   +=  -DNOSCATTER
-OPT   +=  -DRANDOM_GSL     
-OPT   +=  -DCROSS_SECTION_TYPE=4
+                            # spherical reflection boundary for a isolated halo
+#OPT  +=  -DSCATTERLOG      # record scattering event
+#OPT  +=  -DFINDNBRLOG     
+#OPT  +=  -DNOSCATTER       # no velocity update due to scatter (for code test)
+OPT   += -DRANDOM_GSL       # use GSL for random number generator
 
-# 0: Hard sphere (velocity independent)
-# 1: Maxwellian (sigma ~ v^-1)
-# 2: Yukawa-like
-# 3: Power law (sigma ~ v^-n)
+OPT   += -DCROSS_SECTION_TYPE=0
+# CROSS_SECTION_TYPE
+# 0: Hard sphere (velocity independent, isotropic direction)
+# 1: Maxwellian  (sigma ~ v^-1, isotropic direction)
+# 2: Yukawa-like (isotropic direction)
+# 3: Power law   (sigma ~ v^-n)
 # 4: Yukawa interaction
 
-CC       =   mpicc   # sets the C-compiler
-OPTIMIZE =   -O2 # -xT # -Wall  
+CFLAGS  += $(OPT)
+CFLAGS  += $(foreach dir, $(DIR_PATH), -I$(dir)/include)
+LIBS    += $(foreach dir, $(DIR_PATH), -L$(dir)/lib)
 
-EXEC   = P-Gadget
+OBJS    := main.o run.o predict.o begrun.o endrun.o global.o
+OBJS    += timestep.o init.o restart.o  io.o sfr.o
+OBJS    += accel.o read_ic.o cooling.o dissolvegas.o
+OBJS    += system.o allocate.o density.o
+OBJS    += gravtree.o timeline.o hydra.o veldisp.o
+OBJS    += domain.o allvars.o potential.o
+OBJS    += forcetree.o ewald.o read_ic_cluster.o
+OBJS    += sidm.o reflection.o sidm_rand.o
 
-OBJS   = main.o  run.o  predict.o begrun.o endrun.o global.o  \
-	 timestep.o  init.o restart.o  io.o sfr.o \
-	 accel.o   read_ic.o  cooling.o dissolvegas.o \
-	 system.o  allocate.o  density.o \
-	 gravtree.o timeline.o hydra.o veldisp.o \
-	 domain.o  allvars.o potential.o \
-         forcetree.o  ewald.o read_ic_cluster.o sidm.o reflection.o\
-         sidm_rand.o
-
-INCL   = allvars.h  proto.h  forcetree.h tags.h cooling.h domain.h
-
-ifeq ($(SYSTYPE),TACC)
-CC      =  mpicc
-OPTIMIZE += -xT
-GSL_INC =  -I$(TACC_GSL_INC)
-GSL_LIB =  -L$(TACC_GSL_LIB)
+ifneq (,$(findstring DRANDOM_GSL, $(CFLAGS)))
+  LIBS +=  -lgsl -lgslcblas
 endif
 
-ifeq ($(SYSTYPE),GALILEO)
-CC       =  mpicc   
-GSL_INC  = -I$(GSL_INC_GCC)
-GSL_LIB  = -L$(GSL_LIB_GCC)
-endif
-
-ifeq ($(SYSTYPE),)
-CC       = mpicc
-endif
-
-OPTIONS =  $(OPTIMIZE) $(GADGET_FLAGS) $(OPT) 
-CFLAGS =   $(OPTIONS) $(GSL_INC)
-LIBS   =   -lm -lgsl -lgslcblas $(GSL_LIB)
 
 $(EXEC): $(OBJS) 
 	$(CC) $(OBJS) $(LIBS)   -o  $(EXEC)  
 
-$(OBJS): $(INCL) 
+$(OBJS): Makefile
+
+# cc -MM *.c
+accel.o: accel.c allvars.h tags.h proto.h forcetree.h cooling.h
+allocate.o: allocate.c allvars.h tags.h proto.h forcetree.h cooling.h
+allvars.o: allvars.c allvars.h tags.h
+begrun.o: begrun.c allvars.h tags.h proto.h forcetree.h cooling.h \
+  sidm_rand.h
+cooling.o: cooling.c allvars.h tags.h proto.h forcetree.h cooling.h
+density.o: density.c allvars.h tags.h proto.h forcetree.h cooling.h
+dissolvegas.o: dissolvegas.c allvars.h tags.h proto.h forcetree.h \
+  cooling.h
+domain.o: domain.c allvars.h tags.h proto.h forcetree.h cooling.h \
+  domain.h
+endrun.o: endrun.c allvars.h tags.h proto.h forcetree.h cooling.h
+ewald.o: ewald.c
+forcetree.o: forcetree.c allvars.h tags.h proto.h forcetree.h cooling.h
+global.o: global.c allvars.h tags.h proto.h forcetree.h cooling.h
+gravtree.o: gravtree.c allvars.h tags.h proto.h forcetree.h cooling.h
+hydra.o: hydra.c allvars.h tags.h proto.h forcetree.h cooling.h
+init.o: init.c allvars.h tags.h proto.h forcetree.h cooling.h
+io.o: io.c allvars.h tags.h proto.h forcetree.h cooling.h
+main.o: main.c allvars.h tags.h proto.h forcetree.h cooling.h
+potential.o: potential.c allvars.h tags.h proto.h forcetree.h cooling.h
+predict.o: predict.c allvars.h tags.h proto.h forcetree.h cooling.h
+read_ic.o: read_ic.c allvars.h tags.h proto.h forcetree.h cooling.h
+read_ic_cluster.o: read_ic_cluster.c allvars.h tags.h proto.h forcetree.h \
+  cooling.h
+reflection.o: reflection.c allvars.h tags.h
+restart.o: restart.c allvars.h tags.h proto.h forcetree.h cooling.h
+run.o: run.c allvars.h tags.h proto.h forcetree.h cooling.h
+sfr.o: sfr.c allvars.h tags.h proto.h forcetree.h cooling.h
+sidm.o: sidm.c allvars.h tags.h proto.h forcetree.h cooling.h sidm.h \
+  sidm_rand.h
+sidm_rand.o: sidm_rand.c
+system.o: system.c allvars.h tags.h proto.h forcetree.h cooling.h
+timeline.o: timeline.c allvars.h tags.h proto.h forcetree.h cooling.h
+timestep.o: timestep.c allvars.h tags.h proto.h forcetree.h cooling.h
+veldisp.o: veldisp.c allvars.h tags.h proto.h forcetree.h cooling.h
 
 
 .PHONY : clean
 clean:
 	rm -f $(OBJS) $(EXEC)
-
-
-
-
-
-
-

@@ -6,7 +6,7 @@ Monte Carlo N-body Simulation for Self-Interacting Dark Matter
 ## About this code
 
 Self-Interacting Dark Matter (SIDM) is a hypothetical model for cold
-dark matter in the Universe. The string interaction between dark
+dark matter in the Universe. A strong interaction between dark
 matter particles introduce a different physics inside dark-matter
 haloes, making the density profile cored, reduce the number of subhaloes,
 and trigger gravothermal collapse.

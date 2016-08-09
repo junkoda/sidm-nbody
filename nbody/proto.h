@@ -57,7 +57,7 @@ void   open_outputfiles(void);
 #ifndef INLINE
 double INLINE_FUNC periodic(double x);
 #else
-inline double periodic(double x) // jk Feb 26
+static inline double periodic(double x) // jk Feb 26
 {
   while(x > All.BoxHalf)
     x -=All.BoxSize;

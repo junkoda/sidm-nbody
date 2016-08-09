@@ -21,7 +21,7 @@ extern long iseed;
 void init_rand(int seed, int ThisTask);
 
 #ifdef INLINE
-inline void random_direction(double n[])
+static inline void random_direction(double n[])
 {
   double y1, y2, r2, sq1r;
   do{

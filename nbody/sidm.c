@@ -394,8 +394,8 @@ void sidm(void)
 	rand = ran2(&iseed);
 	cosO = 2.0*ran2(&iseed) - 1.0;    // cos(theta) of scatter direction
 	sin22 = 0.5*(1.0 - cosO);         // sin^2(theta/2)
-	denom = 1.0 + beta*beta*sin22*sin22;
-	if(rand >= 1/(denom*denom))
+	denom = 1.0 + beta*beta*sin22;
+	if(rand >= 1/(denom*denom) || rv == 0.0)
 	  continue;
 
 	if(rv == 0.0) { // debug

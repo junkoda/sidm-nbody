@@ -1,0 +1,182 @@
+%  Relevant files
+
+% Initial condition
+% Isolated NFW profile
+% available in http://junkoda.github.io/sidm-nbody/data/eddington_nfw_far_80_in
+%  rho(r) = rho0/[(r/rs)(1 + r/rs)^2]
+%  rho0 = 1.490000e-04 [10^10 M_solar / kpc^3]
+%  rs   = 1.114356e+01 [kpc]
+%  vs   = 100.0 [km/s]        # vs = rs*sqrt(4 pi G rho0)
+%  np   = 524288
+%  r_max = 100 rs             # truncated at 100 rs
+%
+
+
+InitCondFile   eddington_nfw_far_80_in
+OutputDir      ./
+
+EnergyFile        energy_out
+InfoFile          info_out
+TimingsFile       timings_out
+CpuFile           cpu_out
+
+RestartFile       rst_out
+SnapshotFileBase  snp
+
+% SIDM
+
+% CrossSection is in cm^2/g for non-cosmological simulation
+% 1/h cm^2/g for cosmological simulation
+CrossSection      38.2614         # cm2/g
+% in internal unit this is sigma0.internal = m.unit/l.unit^2*sigma = 79.9272
+
+% Relaxation time is
+% tr = 1/(a rho0 sigma vs) = 0.83969 [internal unit]
+% where a ~ 2.26
+
+
+%
+% Additional parameters that depends on cross section models
+% See CROSS_SECTION_TYPE in Makefile
+%
+
+% Power-law cross section (CROSS_SECTION_TYPE=3)
+% sigma = sigma0*(vrel/v0)^alpha
+% simga0
+% CrossSectionVelScale 100.0  # v0
+% CrossSectionPowLaw   -3.0   # alpha
+
+% Yukawa cross section (CROSS_SECTION_TYPE=4)
+% dsigma/dOmega = sigma0/4pi/[ 1 + (v/vY)^2 sin^2 (theta/2) ]^2
+% sigma0 = CrossSection
+% vY = YukawaVelocity
+% YukawaVelocity    1000  
+
+
+% Random Seed for scattering is RandomSeed1 + RandomSeed2 * MPI node id
+RandomSeed1       55
+RandomSeed2       497527
+
+% Each particle have at most one scattering within one time step
+% Restrict time step to avoid missing multiple scattering within time step
+ProbabilityTol    0.2
+
+% Reflection boundary for isolatioed halo
+% set OPT   +=  -DREFLECTIONBOUNDARY in Makefile
+ReflectionBoundary  1114.35    # 100 r_c
+
+% CPU-time limit
+
+TimeLimitCPU      86400.0
+ResubmitOn        0
+ResubmitCommand   xyz
+
+
+% Code options
+
+ICFormat              1
+ComovingIntegrationOn 0
+
+NumFilesPerSnapshot       1
+NumFilesWrittenInParallel 2
+
+CoolingOn 0
+
+%  Caracteristics of run
+
+TimeBegin             0.0  ; Internal Unit 10=Hubble Time
+TimeMax	            500.0  ; gravothermal collapse time is few hundered tr
+
+Omega0	              1.0
+OmegaLambda           0.0
+OmegaBaryon           0.0
+HubbleParam           0.7   ; only needed for cooling
+
+BoxSize                0.0
+PeriodicBoundariesOn   0
+
+
+% Output frequency
+
+OutputListFilename  lst_in
+OutputListOn        0
+
+TimeBetSnapshot        2.0
+TimeOfFirstSnapshot    0.0
+ 
+CpuTimeBetRestartFile  7200.0
+
+TimeBetStatistics      2.0
+
+
+% Accuracy of time integration
+
+TypeOfTimestepCriterion 1
+ErrTolIntAccuracy       0.005     
+ErrTolDynamicalAccuracy 0.004     
+ErrTolVelScale          0.66       
+
+MaxSizeTimestep         0.1 
+MinSizeTimestep         0.0
+
+
+% Tree algorithm and force accuracy
+
+ErrTolTheta            0.5   % 0.6 before Nov 13         
+
+TypeOfOpeningCriterion 1
+ErrTolForceAcc         0.005 % 0.02 before Nov 13
+
+
+MaxNodeMove            0.02  % 0.05 before Nov 13
+TreeUpdateFrequency    0.1
+
+
+
+%  Parameters of SPH
+
+DesNumNgb           30
+MaxNumNgbDeviation  2
+
+ArtBulkViscConst    0.75
+InitGasTemp         1000.0  % initial gas temperature in K, only used if not given in IC file
+MinGasTemp          1000.0    
+CourantFac          0.15
+
+
+% Further code parameters
+
+PartAllocFactor       2.0
+TreeAllocFactor       0.8
+
+BufferSize            100  % in MByte
+
+DomainUpdateFrequency   0.5
+
+
+% System of units
+
+UnitLength_in_cm         3.085678e21        ;  1.0 kpc
+UnitMass_in_g            1.989e43           ;  1.0e10 solar masses
+UnitVelocity_in_cm_per_s 1e5                ;  1 km/sec
+GravityConstantInternal  0
+
+
+% Softening lengths
+% Time step, therefore the runtime, depends on softening length
+
+MinGasHsmlFractional     1.0  % minimum gas smoothing in terms of the gravitational softening length
+
+SofteningGas       600.0
+SofteningHalo      0.3  % Important; make this small enough
+SofteningDisk      0.0
+SofteningBulge     0.0           
+SofteningStars     0.0
+
+SofteningGasMaxPhys       200.0
+SofteningHaloMaxPhys      0.3
+SofteningDiskMaxPhys      0.0
+SofteningBulgeMaxPhys     0.0           
+SofteningStarsMaxPhys     0.0
+
+

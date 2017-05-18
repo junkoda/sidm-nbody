@@ -7,7 +7,11 @@ CFLAGS  := -O2
 LIBS    := -lm
 
 # non-standard library path if necessary
-GSL_DIR ?= #e.g. /Users/jkoda/Research/opt/gcc/gsl
+FFTW2_DIR ?= #e.g. /Users/jkoda/Research/opt/gcc/fftw2
+GSL_DIR ?=  #e.g. /Users/jkoda/Research/opt/gcc/gsl
+
+DIR_PATH   = $(FFTW2_DIR) $(GSL_DIR)
+
 
 #
 # Options

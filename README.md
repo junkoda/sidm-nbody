@@ -16,10 +16,27 @@ scattering for self interaction, and some codes to analyse
 gravothermal collapse of isolated haloes (see Koda & Shapiro 2011
 [[1]]). The N-body simulation is based on GADGET 1.1 [[2]].
 
-## Current status
+## Compile
 
-This repository is now working in progress. More instructions on how
-to run is coming...
+See `nbody/Makefile` and run
+
+```bash
+$ make
+```
+
+in `nbody/`
+
+MPI C compiler and FFTW2 is required; GSL is recomended.
+
+## Run
+
+Give the parameter file as the argument. A sample `parameter.txt` is
+in `nbody` directory.
+
+```bash
+mpirun -n 2 ./sidm-gadget parameter.txt
+```
+
 
 ## References
 1. Koda J., Shapiro P. R., 2011, MNRAS, 415, 1125

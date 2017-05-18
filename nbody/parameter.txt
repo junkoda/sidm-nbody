@@ -37,7 +37,7 @@ CrossSection      38.2614         # cm2/g
 
 %
 % Additional parameters that depends on cross section models
-% See CROSS_SECTION_TYPE in Makefile
+% Compile with a consistent CROSS_SECTION_TYPE in Makefile
 %
 
 % Power-law cross section (CROSS_SECTION_TYPE=3)
@@ -163,7 +163,10 @@ GravityConstantInternal  0
 
 
 % Softening lengths
-% Time step, therefore the runtime, depends on softening length
+% This is important; Make the softening length small
+% enough so that the the scale of interest is not affected by the
+% numerical graviational softening.  Time step depends on softening
+% length; smaller softening length takes longer time
 
 MinGasHsmlFractional     1.0  % minimum gas smoothing in terms of the gravitational softening length
 
@@ -178,5 +181,3 @@ SofteningHaloMaxPhys      0.3
 SofteningDiskMaxPhys      0.0
 SofteningBulgeMaxPhys     0.0           
 SofteningStarsMaxPhys     0.0
-
-
